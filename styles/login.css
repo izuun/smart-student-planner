@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap");
+.login-container {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:24px; background:radial-gradient(circle at 20% 10%,#818cf8 0,#4f46e5 35%,#0f172a 100%);
+  position:relative; overflow:hidden;
+}
+.login-container::before,.login-container::after {
+  content:""; position:absolute; border-radius:50%; filter:blur(2px);
+  background:rgba(255,255,255,.08); animation:float 8s ease-in-out infinite;
+}
+.login-container::before { width:280px;height:280px;top:-90px;right:-70px; }
+.login-container::after { width:220px;height:220px;bottom:-80px;left:-60px;animation-delay:-3s; }
+@keyframes float { 50% { transform:translate(20px,18px) scale(1.05); } }
+.login-box {
+  position:relative; z-index:1; width:min(100%,420px); padding:40px 34px;
+  border:1px solid rgba(255,255,255,.55); border-radius:24px;
+  background:rgba(255,255,255,.94); backdrop-filter:blur(18px);
+  box-shadow:0 30px 80px rgba(2,6,23,.3); text-align:center;
+  animation:loginIn .55s cubic-bezier(.22,1,.36,1);
+}
+@keyframes loginIn { from { opacity:0; transform:translateY(24px) scale(.97); } to { opacity:1; transform:none; } }
+.login-box h1 { font:800 clamp(1.35rem,4vw,1.7rem) "Poppins"; margin:0 0 6px; color:#172033; }
+.login-box > p { color:#697386; margin:0 0 25px; font-size:.9rem; }
+.login-box form { display:flex; flex-direction:column; gap:13px; }
+.input-box { position:relative; display:flex; align-items:center; }
+.input-box i { position:absolute; left:14px; color:#818cf8; z-index:1; }
+.input-box input {
+  width:100%; padding:13px 14px 13px 40px; border:1px solid #e3e7ef;
+  border-radius:13px; font:500 .9rem "Inter"; color:#172033; outline:0;
+  background:#f8fafc; transition:.22s;
+}
+.input-box input:focus { background:#fff; border-color:#6366f1; box-shadow:0 0 0 4px #eef2ff; transform:translateY(-1px); }
+.login-box button {
+  margin-top:5px; width:100%; padding:13px; border:0; border-radius:13px;
+  background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff;
+  font:700 .92rem "Inter"; cursor:pointer; box-shadow:0 10px 22px rgba(79,70,229,.25);
+  transition:.2s;
+}
+.login-box button:hover { transform:translateY(-2px); box-shadow:0 15px 30px rgba(79,70,229,.32); }
+.login-box button:active { transform:scale(.97); }
+.login-box .register { margin-top:20px; font-size:.86rem; color:#697386; }
+.login-box .register a { color:#4f46e5; font-weight:700; }
+.login-box .error,.login-box .success { padding:11px 14px; border-radius:12px; font-size:.84rem; margin-bottom:15px; animation:loginIn .25s ease; }
+.login-box .error { background:#fee2e2; color:#dc2626; }
+.login-box .success { background:#d1fae5; color:#047857; }
+@media(max-width:480px){.login-container{padding:16px}.login-box{padding:32px 20px;border-radius:20px}}
+
+.login-logo {
+  width: 280px;
+  height: 100px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 15px;
+}

@@ -1,0 +1,42 @@
+/* Profile editor spacing */
+.edit-profile .save-profile-btn {
+  display: block;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.header-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  background: var(--primary-light);
+}
+
+.header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-avatar i {
+  font-size: 1.65rem;
+  color: var(--primary);
+}
+
+.header-username {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .edit-profile .save-profile-btn { margin-top: 20px; }
+  .header-avatar { width: 30px; height: 30px; flex-basis: 30px; }
+  .header-username { max-width: 120px; }
+}
