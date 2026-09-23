@@ -1,13 +1,53 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/style.css";
 import "../styles/login.css";
 import { TourProvider } from "../context/TourContext";
 import TourOverlay from "../components/TourOverlay";
 
+// Sidebar order, used to slide pages forward (left) or back (right) like a carousel.
+const PAGE_ORDER = [
+  "/dashboard",
+  "/tasks",
+  "/calendar",
+  "/cgpa",
+  "/goals",
+  "/statistics",
+  "/profile",
+  "/settings",
+  "/sdg",
+  "/guide",
+];
+
 export default function App({ Component, pageProps }) {
   const router = useRouter();
+  const [leaving, setLeaving] = useState(false);
+  const [direction, setDirection] = useState("forward");
+  const pathRef = useRef(router.pathname);
+  pathRef.current = router.pathname;
+
+  // Slide the current page out while the next one loads, then slide the new one in.
+  useEffect(() => {
+    const pathOf = (url) => url.split(/[?#]/)[0];
+    const start = (url, { shallow } = {}) => {
+      const to = pathOf(url);
+      if (shallow || to === pathRef.current) return;
+      const from = PAGE_ORDER.indexOf(pathRef.current);
+      const target = PAGE_ORDER.indexOf(to);
+      setDirection(from !== -1 && target !== -1 && target < from ? "back" : "forward");
+      setLeaving(true);
+    };
+    const stop = () => setLeaving(false);
+    router.events.on("routeChangeStart", start);
+    router.events.on("routeChangeComplete", stop);
+    router.events.on("routeChangeError", stop);
+    return () => {
+      router.events.off("routeChangeStart", start);
+      router.events.off("routeChangeComplete", stop);
+      router.events.off("routeChangeError", stop);
+    };
+  }, [router.events]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("darkMode") === "true";
@@ -39,7 +79,7 @@ export default function App({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </Head>
       <TourProvider>
-        <div className="page-transition" key={router.asPath}>
+        <div className={`page-transition ${leaving ? "leave" : "enter"}-${direction}`} key={router.asPath}>
           <Component {...pageProps} />
         </div>
         <TourOverlay />

@@ -75,7 +75,26 @@ export default function TourOverlay() {
   // A new step (or switching between step / switch-page mode) goes back to auto placement.
   useEffect(() => {
     setManualPos(null);
+    setCollapsed(false);
   }, [tour?.stepIndex, navMode]);
+
+  // Once a required action is done, make sure the (now unlocked) Next button is visible.
+  useEffect(() => {
+    if (tour && !tour.locked) setCollapsed(false);
+  }, [tour?.locked]);
+
+  // On phones the on-screen keyboard eats the screen while the user fills in a required
+  // form, so tuck the guide away as soon as they tap into the highlighted area.
+  useEffect(() => {
+    if (!active || !onStepPage || !step || !step.requires || !tour.locked) return undefined;
+    const onFocus = (e) => {
+      if (window.innerWidth > 700) return;
+      const el = document.querySelector(`[data-tour="${step.target}"]`);
+      if (el && el.contains(e.target)) setCollapsed(true);
+    };
+    document.addEventListener("focusin", onFocus);
+    return () => document.removeEventListener("focusin", onFocus);
+  }, [active, onStepPage, step, tour?.locked]);
 
   // Locate whatever should be highlighted right now.
   useEffect(() => {
@@ -99,12 +118,12 @@ export default function TourOverlay() {
         const el = query();
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
-          // Give the smooth-scroll a moment to settle before measuring.
+          // Give the smooth-scroll and the page slide-in a moment to settle before measuring.
           timer = setTimeout(() => {
             if (cancelled) return;
             const again = query();
             if (again) update(toRect(again));
-          }, 260);
+          }, 420);
         } else if (attempts < 30) {
           attempts += 1;
           timer = setTimeout(locate, 150);
@@ -317,7 +336,13 @@ export default function TourOverlay() {
             <>
               <h3 className="tour-title">{step.title}</h3>
               <p className="tour-text">{step.text}</p>
-              {nextIsNewPage && (
+              {step.requires && (
+                <p className={`tour-note ${tour.actionDone ? "tour-success" : "tour-locked"}`}>
+                  <i className={`fa-solid ${tour.actionDone ? "fa-circle-check" : "fa-lock"}`}></i>{" "}
+                  {tour.actionDone ? step.doneHint : step.requireHint}
+                </p>
+              )}
+              {nextIsNewPage && !tour.locked && (
                 <p className="tour-note">
                   <i className="fa-solid fa-route"></i> Up next: switch to{" "}
                   {PAGE_LABELS[tour.nextStep.page] || "another page"} yourself.
@@ -332,8 +357,15 @@ export default function TourOverlay() {
                 <button type="button" className="btn" onClick={tour.back} disabled={tour.isFirst}>
                   <i className="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <button type="button" className="btn save-btn" onClick={tour.next}>
-                  {tour.isLast ? "Finish" : "Next"} <i className="fa-solid fa-arrow-right"></i>
+                <button
+                  type="button"
+                  className="btn save-btn"
+                  onClick={tour.next}
+                  disabled={tour.locked}
+                  title={tour.locked ? step.requireHint : undefined}
+                >
+                  {tour.isLast ? "Finish" : "Next"}{" "}
+                  <i className={`fa-solid ${tour.locked ? "fa-lock" : "fa-arrow-right"}`}></i>
                 </button>
               </div>
             </>

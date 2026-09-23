@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { getUserFromContext } from "../lib/auth";
+import { useTour } from "../context/TourContext";
 
 export async function getServerSideProps(context) {
   const user = getUserFromContext(context);
@@ -21,6 +22,7 @@ export default function Tasks({ fullname }) {
     due_date: "",
   });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const tour = useTour();
 
   const loadTasks = useCallback(async (q = "") => {
     const res = await fetch(`/api/tasks${q ? `?search=${encodeURIComponent(q)}` : ""}`);
@@ -34,13 +36,15 @@ export default function Tasks({ fullname }) {
 
   async function handleAdd(e) {
     e.preventDefault();
-    await fetch("/api/tasks", {
+    const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
     setForm({ title: "", subject: "", priority: "High", due_date: "" });
     loadTasks(search);
+    // Unlocks the guided tour's "Add a Task" step (does nothing outside the tour).
+    if (res.ok && tour) tour.markDone("task-added");
   }
 
   async function handleComplete(id) {

@@ -50,8 +50,16 @@ h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 14px; }
 .main { margin-left: var(--sidebar-w); min-height: 100vh; }
 .content { padding: 30px 34px 70px; max-width: 1280px; }
 .subtitle { color: var(--text-muted); margin: 0; }
-.page-transition { animation: pageIn .34s cubic-bezier(.22,1,.36,1); }
-@keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* Page transitions: content slides + fades; the sidebar stays put. */
+.page-transition { overflow-x: clip; }
+.page-transition.enter-forward > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageInRight .34s cubic-bezier(.22,1,.36,1) backwards; }
+.page-transition.enter-back > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageInLeft .34s cubic-bezier(.22,1,.36,1) backwards; }
+.page-transition.leave-forward > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageOutLeft .2s ease-in forwards; }
+.page-transition.leave-back > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageOutRight .2s ease-in forwards; }
+@keyframes pageInRight { from { opacity: 0; transform: translateX(44px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pageInLeft { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pageOutLeft { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-44px); } }
+@keyframes pageOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(44px); } }
 
 /* Sidebar */
 .sidebar {
@@ -498,6 +506,8 @@ tbody tr:hover { background:rgba(99,102,241,.035); }
 .tour-title { margin: 4px 0 6px; font-size: 1.05rem; }
 .tour-text { margin: 0 0 12px; color: var(--text-muted); line-height: 1.5; font-size: .92rem; }
 .tour-note { margin: 0 0 12px; font-size: .82rem; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+.tour-note.tour-locked { color: var(--text-muted); }
+.tour-note.tour-success { color: #16a34a; font-weight: 600; }
 .tour-progress-dots { display: flex; gap: 5px; margin-bottom: 14px; flex-wrap: wrap; }
 .tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
 .tour-dot.active { background: var(--primary); width: 16px; border-radius: 4px; }
