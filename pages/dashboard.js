@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import { getUserFromContext } from "../lib/auth";
 import { getDb } from "../lib/mongodb";
 import { useTour } from "../context/TourContext";
+import { LiveDate, LiveClock, useTodayKey } from "../components/LiveClock";
 
 function dateKeyToday() {
   const n = new Date();
@@ -98,6 +99,18 @@ export default function Dashboard({
   const goalPct = targetCgpa > 0 ? Math.min(100, (cgpa / targetCgpa) * 100) : 0;
   const router = useRouter();
   const tour = useTour();
+  // Today on the visitor's own device. The server-side status is only used until this is known.
+  const todayKey = useTodayKey();
+  const upcomingRows = upcoming.map((t) => ({
+    ...t,
+    status: todayKey
+      ? t.due_date < todayKey
+        ? "overdue"
+        : t.due_date === todayKey
+        ? "today"
+        : "upcoming"
+      : t.status,
+  }));
   const [showGuidePrompt, setShowGuidePrompt] = useState(false);
 
   useEffect(() => {
@@ -150,8 +163,15 @@ export default function Dashboard({
       <div className="main">
         <Header fullname={fullname} />
         <div className="content">
-          <h1>Welcome back, {fullname}</h1>
-          <p className="subtitle">{todayLabel} — here's where things stand.</p>
+          <div className="dash-head">
+            <div>
+              <h1>Welcome back, {fullname}</h1>
+              <p className="subtitle">
+                <LiveDate fallback={todayLabel} /> — here's where things stand.
+              </p>
+            </div>
+            <LiveClock />
+          </div>
           <br />
 
           <div className="stats-grid" data-tour="dash-stats">
@@ -200,7 +220,7 @@ export default function Dashboard({
                   Nothing due — add a task to get started.
                 </p>
               )}
-              {upcoming.map((t) => (
+              {upcomingRows.map((t) => (
                 <div className="dash-task-row" key={t.id}>
                   <div>
                     <strong>{t.title}</strong>
