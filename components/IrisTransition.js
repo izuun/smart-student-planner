@@ -62,16 +62,13 @@ export default function IrisTransition() {
     const api = {
       async close() {
         if (stopCurrent) stopCurrent();
-        el.classList.remove("holding");
         el.style.display = "block";
         const start = maxRadius();
         paint(start);
         await run(start, 0, CLOSE_MS);
-        el.classList.add("holding"); // logo fades in only if loading takes a moment
       },
       async open() {
         if (stopCurrent) stopCurrent();
-        el.classList.remove("holding");
         // Let the new page paint under the cover before revealing it.
         await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
         await run(0, maxRadius(), OPEN_MS);
@@ -88,7 +85,6 @@ export default function IrisTransition() {
 
   return (
     <div ref={ref} className="iris-cover" aria-hidden="true">
-      <img className="iris-logo" src="/icon-192.png" alt="" />
     </div>
   );
 }

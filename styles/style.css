@@ -68,11 +68,6 @@ h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 14px; }
 
 /* Circle (iris) transition for login / logout */
 .iris-cover { display: none; position: fixed; inset: 0; z-index: 10000; background: #0b1020; }
-.iris-logo {
-  position: absolute; top: 50%; left: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
-  border-radius: 16px; opacity: 0; transition: opacity .12s ease;
-}
-.iris-cover.holding .iris-logo { opacity: 1; transition: opacity .25s ease .3s; }
 
 /* Sidebar */
 .sidebar {
