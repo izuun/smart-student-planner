@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { irisPush } from "../lib/iris";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
@@ -57,8 +58,8 @@ export default function Sidebar() {
           href="#"
           onClick={async (e) => {
             e.preventDefault();
-            await fetch("/api/auth/logout", { method: "POST" });
-            router.push("/login");
+            // The circle closes while the logout request runs, then opens onto the login page.
+            await irisPush(router, "/login", () => fetch("/api/auth/logout", { method: "POST" }));
           }}
         >
           <i className="fa-solid fa-right-from-bracket"></i>

@@ -50,16 +50,29 @@ h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 14px; }
 .main { margin-left: var(--sidebar-w); min-height: 100vh; }
 .content { padding: 30px 34px 70px; max-width: 1280px; }
 .subtitle { color: var(--text-muted); margin: 0; }
-/* Page transitions: content slides + fades; the sidebar stays put. */
+/* Page transitions: content slides + fades; the sidebar stays put.
+   Only opacity/transform are animated (GPU-friendly), and the class is removed
+   once the page has settled, so nothing stays on its own layer afterwards. */
 .page-transition { overflow-x: clip; }
-.page-transition.enter-forward > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageInRight .34s cubic-bezier(.22,1,.36,1) backwards; }
-.page-transition.enter-back > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageInLeft .34s cubic-bezier(.22,1,.36,1) backwards; }
-.page-transition.leave-forward > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageOutLeft .2s ease-in forwards; }
-.page-transition.leave-back > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageOutRight .2s ease-in forwards; }
-@keyframes pageInRight { from { opacity: 0; transform: translateX(44px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes pageInLeft { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes pageOutLeft { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-44px); } }
-@keyframes pageOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(44px); } }
+.page-transition.enter-forward > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageInRight .3s cubic-bezier(.22,1,.36,1) backwards; will-change: transform, opacity; }
+.page-transition.enter-back > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageInLeft .3s cubic-bezier(.22,1,.36,1) backwards; will-change: transform, opacity; }
+.page-transition.leave-forward > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageOutLeft .16s ease-in forwards; will-change: transform, opacity; }
+.page-transition.leave-back > :not(.sidebar):not(.sidebar-overlay):not(.mobile-menu-btn) { animation: pageOutRight .16s ease-in forwards; will-change: transform, opacity; }
+/* Blurring the sticky header on every frame of a fading page is what made it stutter. */
+.page-transition[class*="enter-"] .topbar,
+.page-transition[class*="leave-"] .topbar { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@keyframes pageInRight { from { opacity: 0; transform: translate3d(32px,0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+@keyframes pageInLeft { from { opacity: 0; transform: translate3d(-32px,0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+@keyframes pageOutLeft { from { opacity: 1; transform: translate3d(0,0,0); } to { opacity: 0; transform: translate3d(-24px,0,0); } }
+@keyframes pageOutRight { from { opacity: 1; transform: translate3d(0,0,0); } to { opacity: 0; transform: translate3d(24px,0,0); } }
+
+/* Circle (iris) transition for login / logout */
+.iris-cover { display: none; position: fixed; inset: 0; z-index: 10000; background: #0b1020; }
+.iris-logo {
+  position: absolute; top: 50%; left: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  border-radius: 16px; opacity: 0; transition: opacity .12s ease;
+}
+.iris-cover.holding .iris-logo { opacity: 1; transition: opacity .25s ease .3s; }
 
 /* Sidebar */
 .sidebar {

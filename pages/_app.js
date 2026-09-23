@@ -5,6 +5,8 @@ import "../styles/style.css";
 import "../styles/login.css";
 import { TourProvider } from "../context/TourContext";
 import TourOverlay from "../components/TourOverlay";
+import IrisTransition from "../components/IrisTransition";
+import { isIrisActive } from "../lib/iris";
 
 // Sidebar order, used to slide pages forward (left) or back (right) like a carousel.
 const PAGE_ORDER = [
@@ -23,16 +25,23 @@ const PAGE_ORDER = [
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
-  const [direction, setDirection] = useState("forward");
+  const [direction, setDirection] = useState("forward"); // "forward" | "back" | "none" (iris)
+  // The page whose entrance animation has finished. Anything else is a page that just arrived.
+  const [settledPath, setSettledPath] = useState(router.asPath);
   const pathRef = useRef(router.pathname);
   pathRef.current = router.pathname;
 
-  // Slide the current page out while the next one loads, then slide the new one in.
+  // Slide the current page out while the next one loads.
   useEffect(() => {
     const pathOf = (url) => url.split(/[?#]/)[0];
     const start = (url, { shallow } = {}) => {
       const to = pathOf(url);
       if (shallow || to === pathRef.current) return;
+      // Login / logout use the circle transition instead of the slide.
+      if (isIrisActive()) {
+        setDirection("none");
+        return;
+      }
       const from = PAGE_ORDER.indexOf(pathRef.current);
       const target = PAGE_ORDER.indexOf(to);
       setDirection(from !== -1 && target !== -1 && target < from ? "back" : "forward");
@@ -48,6 +57,13 @@ export default function App({ Component, pageProps }) {
       router.events.off("routeChangeError", stop);
     };
   }, [router.events]);
+
+  // Once a new page has finished animating in, drop the animation classes so
+  // nothing stays promoted to its own layer (which would also break fixed modals).
+  useEffect(() => {
+    const t = setTimeout(() => setSettledPath(router.asPath), 520);
+    return () => clearTimeout(t);
+  }, [router.asPath]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("darkMode") === "true";
@@ -65,6 +81,11 @@ export default function App({ Component, pageProps }) {
     return () => window.removeEventListener("storage", syncTheme);
   }, []);
 
+  // A freshly arrived page always starts in its "enter" state, even while `leaving`
+  // is still true for that one render, so it can never flash in at full opacity.
+  const isNewPage = router.asPath !== settledPath;
+  const phase = isNewPage ? `enter-${direction}` : leaving ? `leave-${direction}` : "idle";
+
   return (
     <>
       <Head>
@@ -79,11 +100,12 @@ export default function App({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </Head>
       <TourProvider>
-        <div className={`page-transition ${leaving ? "leave" : "enter"}-${direction}`} key={router.asPath}>
+        <div className={`page-transition ${phase}`} key={router.asPath}>
           <Component {...pageProps} />
         </div>
         <TourOverlay />
       </TourProvider>
+      <IrisTransition />
     </>
   );
 }

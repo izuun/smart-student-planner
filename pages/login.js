@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { getUserFromContext } from "../lib/auth";
+import { irisPush } from "../lib/iris";
 
 export async function getServerSideProps(context) {
   const user = getUserFromContext(context);
@@ -34,7 +35,7 @@ export default function Login() {
       return;
     }
 
-    router.push("/dashboard");
+    await irisPush(router, "/dashboard");
   }
 
   return (
