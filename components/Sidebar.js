@@ -44,6 +44,7 @@ export default function Sidebar() {
           <Link
             key={link.href}
             href={link.href}
+            data-tour-nav={link.href}
             onClick={() => setOpen(false)}
             className={router.pathname === link.href ? "active-link" : ""}
           >

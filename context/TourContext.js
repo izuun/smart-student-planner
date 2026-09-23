@@ -1,12 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/router";
 import { TOUR_STEPS } from "../lib/tourSteps";
 
 const STORAGE_KEY = "ssp_tour_progress";
 const TourContext = createContext(null);
 
 export function TourProvider({ children }) {
-  const router = useRouter();
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -30,17 +28,16 @@ export function TourProvider({ children }) {
     } catch (err) {}
   }, []);
 
+  // Only changes the step. It never navigates: if the step is on another
+  // page, the overlay shows a switching-page guide and the user opens the
+  // page themselves.
   const goToStepIndex = useCallback(
     (index) => {
-      const step = TOUR_STEPS[index];
-      if (!step) return;
+      if (!TOUR_STEPS[index]) return;
       setStepIndex(index);
       persist(true, index);
-      if (router.pathname !== step.page) {
-        router.push(step.page);
-      }
     },
-    [router, persist]
+    [persist]
   );
 
   const startTour = useCallback(() => {
@@ -72,6 +69,7 @@ export function TourProvider({ children }) {
       stepIndex,
       total: TOUR_STEPS.length,
       currentStep: TOUR_STEPS[stepIndex] || null,
+      nextStep: TOUR_STEPS[stepIndex + 1] || null,
       isFirst: stepIndex === 0,
       isLast: stepIndex === TOUR_STEPS.length - 1,
       startTour,

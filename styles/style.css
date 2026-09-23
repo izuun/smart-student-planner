@@ -456,23 +456,54 @@ tbody tr:hover { background:rgba(99,102,241,.035); }
 .guide-points li { margin-bottom: 6px; line-height: 1.5; }
 
 /* Interactive onboarding tour */
-.tour-card {
-  position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-  width: min(440px, calc(100vw - 24px)); z-index: 9999;
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  box-shadow: 0 20px 50px rgba(0,0,0,.35); padding: 18px 20px 16px;
+.tour-spotlight {
+  position: fixed; border-radius: 14px; pointer-events: none; z-index: 9998;
+  box-shadow: 0 0 0 4px var(--primary), 0 0 0 9999px rgba(8,10,20,.72);
+  transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
 }
-.tour-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.tour-step-count { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
-.tour-skip { background: none; border: none; color: var(--text-muted); font-size: .8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px; }
+.tour-spotlight.full { inset: 0; border-radius: 0; box-shadow: none; background: rgba(8,10,20,.72); }
+.tour-spotlight.nav { animation: tourPulse 1.3s ease-in-out infinite; }
+@keyframes tourPulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--primary), 0 0 0 9999px rgba(8,10,20,.72); }
+  50% { box-shadow: 0 0 0 9px var(--primary), 0 0 0 9999px rgba(8,10,20,.72); }
+}
+
+.tour-card {
+  position: fixed; z-index: 9999;
+  width: min(420px, calc(100vw - 20px)); max-height: calc(100vh - 20px); overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 20px 50px rgba(0,0,0,.35); padding: 12px 18px 16px;
+  transition: top .25s ease, left .25s ease;
+}
+.tour-card.dragging { transition: none; box-shadow: 0 26px 60px rgba(0,0,0,.45); }
+.tour-card-top {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  margin: 0 -6px 6px; padding: 4px 6px; border-radius: 10px;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.tour-card.dragging .tour-card-top { cursor: grabbing; }
+.tour-card-top:hover { background: rgba(127,127,127,.1); }
+.tour-drag-label { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.tour-grip { color: var(--text-muted); font-size: .8rem; }
+.tour-step-count { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+.tour-collapsed-title { font-size: .85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tour-top-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.tour-icon-btn {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+}
+.tour-icon-btn:hover { color: var(--text); background: rgba(127,127,127,.15); }
+.tour-skip { background: none; border: none; color: var(--text-muted); font-size: .8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 6px; }
 .tour-skip:hover { color: var(--text); }
 .tour-title { margin: 4px 0 6px; font-size: 1.05rem; }
-.tour-text { margin: 0 0 14px; color: var(--text-muted); line-height: 1.5; font-size: .92rem; }
+.tour-text { margin: 0 0 12px; color: var(--text-muted); line-height: 1.5; font-size: .92rem; }
+.tour-note { margin: 0 0 12px; font-size: .82rem; color: var(--primary); display: flex; align-items: center; gap: 6px; }
 .tour-progress-dots { display: flex; gap: 5px; margin-bottom: 14px; flex-wrap: wrap; }
 .tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
 .tour-dot.active { background: var(--primary); width: 16px; border-radius: 4px; }
-.tour-actions { display: flex; justify-content: space-between; gap: 10px; }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .tour-actions .btn:disabled { opacity: .4; cursor: not-allowed; }
+.tour-waiting { font-size: .82rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
 @media (max-width: 600px) {
-  .tour-card { bottom: 8px; padding: 16px 16px 14px; }
+  .tour-card { padding: 10px 14px 14px; }
 }
