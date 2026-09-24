@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { flushSync } from "react-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { getUserFromContext } from "../lib/auth";
 import { GRADING_SYSTEMS, getGradeOptions } from "../lib/grading";
+import { vacuumDelete } from "../lib/rowEffects";
 
 export async function getServerSideProps(context) {
   const user = getUserFromContext(context);
@@ -149,9 +151,15 @@ export default function CgpaCalculator({ fullname }) {
 
   async function confirmDeleteSemester() {
     if (!confirmDelete) return;
-    await fetch(`/api/cgpa/${confirmDelete.id}`, { method: "DELETE" });
-    if (editingId === confirmDelete.id) resetForm();
+    const id = confirmDelete.id;
     setConfirmDelete(null);
+    // A trash can opens and vacuums the semester row away, then the list closes the gap.
+    const row = document.querySelector(`tr[data-row-id="${id}"]`);
+    const ok = await vacuumDelete(row, {
+      action: async () => (await fetch(`/api/cgpa/${id}`, { method: "DELETE" })).ok,
+      commit: () => flushSync(() => setSemesters((prev) => prev.filter((s) => s._id !== id))),
+    });
+    if (ok && editingId === id) resetForm();
     loadSemesters();
   }
 
@@ -343,7 +351,7 @@ export default function CgpaCalculator({ fullname }) {
                       <th>Action</th>
                     </tr>
                     {semesters.map((s) => (
-                      <tr key={s._id}>
+                      <tr key={s._id} data-row-id={s._id}>
                         <td data-label="Semester">{s.name}</td>
                         <td data-label="Credit Hours">{s.totalCredits}</td>
                         <td data-label="GPA">

@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { getUserFromContext } from "../lib/auth";
 import { useTour } from "../context/TourContext";
+import { flashRowGreen, vacuumDelete } from "../lib/rowEffects";
 
 export async function getServerSideProps(context) {
   const user = getUserFromContext(context);
@@ -23,6 +25,7 @@ export default function Tasks({ fullname }) {
   });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const tour = useTour();
+  const completingRef = useRef(new Set());
 
   const loadTasks = useCallback(async (q = "") => {
     const res = await fetch(`/api/tasks${q ? `?search=${encodeURIComponent(q)}` : ""}`);
@@ -47,8 +50,18 @@ export default function Tasks({ fullname }) {
     if (res.ok && tour) tour.markDone("task-added");
   }
 
-  async function handleComplete(id) {
-    await fetch(`/api/tasks/${id}`, { method: "PATCH" });
+  async function handleComplete(id, e) {
+    // Grab the row now: React clears e.currentTarget after the first await.
+    const row = e && e.currentTarget ? e.currentTarget.closest("tr") : null;
+    if (completingRef.current.has(id)) return;
+    completingRef.current.add(id);
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "PATCH" });
+      // Green light sweeps across the finished row, left to right.
+      if (res.ok) flashRowGreen(row);
+    } finally {
+      completingRef.current.delete(id);
+    }
     loadTasks(search);
   }
 
@@ -58,8 +71,14 @@ export default function Tasks({ fullname }) {
 
   async function confirmDeleteTask() {
     if (!confirmDelete) return;
-    await fetch(`/api/tasks/${confirmDelete._id}`, { method: "DELETE" });
+    const id = confirmDelete._id;
     setConfirmDelete(null);
+    // A trash can opens and vacuums the row away, then the list closes the gap.
+    const row = document.querySelector(`tr[data-row-id="${id}"]`);
+    await vacuumDelete(row, {
+      action: async () => (await fetch(`/api/tasks/${id}`, { method: "DELETE" })).ok,
+      commit: () => flushSync(() => setTasks((prev) => prev.filter((t) => t._id !== id))),
+    });
     loadTasks(search);
   }
 
@@ -144,7 +163,7 @@ export default function Tasks({ fullname }) {
               </tr>
 
               {tasks.map((task) => (
-                <tr key={task._id}>
+                <tr key={task._id} data-row-id={task._id}>
                   <td data-label="Task">{task.title}</td>
                   <td data-label="Subject">{task.subject}</td>
                   <td data-label="Priority">
@@ -167,7 +186,7 @@ export default function Tasks({ fullname }) {
                       {task.status !== "Completed" && (
                         <button
                           className="btn complete-btn"
-                          onClick={() => handleComplete(task._id)}
+                          onClick={(e) => handleComplete(task._id, e)}
                         >
                           <i className="fa-solid fa-check"></i>
                         </button>
